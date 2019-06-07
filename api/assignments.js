@@ -1,5 +1,6 @@
 const router = require('express').Router();
 
+exports.router = router;
 
 /*
  * Create a new Assignment.
@@ -22,9 +23,9 @@ router.patch('/:id', async (req, res, next) => {
 
 });
 
-/* 
+/*
  * Remove a specific Assignment from the database.
- */
+ */ 
 router.delete('/:id', async (req, res, next) => {
 
 });

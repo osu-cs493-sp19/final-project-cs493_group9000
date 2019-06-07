@@ -1,5 +1,7 @@
 const router = require('express').Router();
 
+exports.router = router;
+
 
 /*
  * Fetch the list of all Courses.
