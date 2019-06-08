@@ -2,6 +2,10 @@ const router = require('express').Router();
 
 exports.router = router;
 
+const { validateAgainstSchema } = require('../lib/validation');
+const { CourseSchema } = require('../models/courses');
+
+
 
 /*
  * Fetch the list of all Courses.

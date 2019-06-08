@@ -2,6 +2,10 @@ const router = require('express').Router();
 
 exports.router = router;
 
+const { validateAgainstSchema } = require('../lib/validation');
+const { AssignmentSchema } = require('../models/assignments');
+
+
 /*
  * Create a new Assignment.
  */
