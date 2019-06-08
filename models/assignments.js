@@ -1,4 +1,5 @@
 const { getDBReference } = require('../lib/mongo');
+const { ObjectId } = require('mongodb');
 
 /*
  * Schema for an Assignment.
