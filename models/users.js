@@ -35,7 +35,7 @@ exports.getUsers = async function () {
 /*
  * Get user info by ID
  */
-exports.getUserByID = async function (id, includePassword) {
+exports.getUserByID = async function (userID, includePassword) {
 	const db = getDBReference();
 	const collection = db.collection('users');
 	if (!ObjectId.isValid(id)) {

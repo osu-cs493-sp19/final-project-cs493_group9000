@@ -23,3 +23,59 @@ const SubmissionSchema = {
 }
 exports.SubmissionSchema = SubmissionSchema;
 
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Insert new assignment into the DB
+ */
+exports.insertNewAssignment = async function (assignment) {
+
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get assignment info by ID
+ */
+exports.getAssignmentByID = async function (assignmentID) {
+
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Update a assignment in the DB
+ */
+exports.updateAssignment = async function (assignmentID, assignmentUpdate) {
+
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Delete a assignment in the DB
+ */
+exports.deleteAssignment = async function (assignmentID) {
+
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get list of assignements for an assignment
+ */
+exports.getSubmissionsToAssignment = async function (assignmentID) {
+
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Add a submission to an assignment
+ */
+exports.insertNewSubmission = async function (assignmentID, submission) {
+
+}
+
+

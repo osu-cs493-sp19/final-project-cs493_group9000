@@ -3,7 +3,12 @@ const router = require('express').Router();
 exports.router = router;
 
 const { validateAgainstSchema } = require('../lib/validation');
-const { UserSchema } = require('../models/users');
+const { UserSchema,
+		getUsers,
+		getUserByID,
+		insertNewUser
+ } = require('../models/users');
+
 
 /*
  * Create a new user

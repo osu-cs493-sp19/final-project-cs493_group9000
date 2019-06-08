@@ -3,7 +3,14 @@ const router = require('express').Router();
 exports.router = router;
 
 const { validateAgainstSchema } = require('../lib/validation');
-const { AssignmentSchema } = require('../models/assignments');
+const { AssignmentSchema,
+		insertNewAssignment,
+		getAssignmentByID,
+		updateAssignment,
+		deleteAssignment,
+		getSubmissionsToAssignment,
+		insertNewSubmission
+} = require('../models/assignments');
 
 
 /*
