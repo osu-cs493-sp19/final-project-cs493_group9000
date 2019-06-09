@@ -19,6 +19,8 @@ const { AssignmentSchema,
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /*
  * Create a new Assignment.
  */
@@ -43,6 +45,8 @@ router.post('/', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /* 
  * Fetch data about a specific Assignment.
  */
@@ -57,6 +61,8 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// Needs testing
 
 /* 
  * Update data for a specific Assignment.
@@ -74,6 +80,8 @@ router.patch('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /*
  * Remove a specific Assignment from the database.
  */ 
@@ -89,6 +97,8 @@ router.delete('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /* 
  * Fetch the list of all Submissions for an Assignment.
  */
@@ -103,6 +113,8 @@ router.get('/:id/submissions', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// Needs testing
 
 /* 
  * Create a new Submission for an Assignment.

@@ -22,6 +22,8 @@ const { CourseSchema,
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /*
  * Fetch the list of all Courses.
  */
@@ -35,6 +37,8 @@ router.get('/', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// Needs testing
 
 /*
  * Create a new course.
@@ -60,6 +64,8 @@ router.post('/', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /*
  * Fetch data about a specific Course.
  */
@@ -74,6 +80,8 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// Needs testing
 
 /*
  * Update data for a specific Course.
@@ -91,6 +99,8 @@ router.patch ('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /*
  * Remove a specific Course from the database.
  */
@@ -106,6 +116,8 @@ router.delete('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /*
  * Fetch a list of the students enrolled in the Course.
  */
@@ -120,6 +132,8 @@ router.get('/:id/students', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// Needs testing
 
 /*
  * Update enrollment for a Course.
@@ -148,6 +162,8 @@ router.post('/:id/students', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Needs testing
+
 /*
  * Fetch a CSV file containing list of the students enrolled in the Course.
  */
@@ -161,6 +177,8 @@ router.get('/:id/roster', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// Needs testing
 
 /*
  * Fetch a list of the Assignments for the Course.

@@ -41,12 +41,15 @@ router.get('/', async (req, res) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
+// Should make sure email is unique
+
 /*
  * Create a new user
  */
 router.post('/', async (req, res, next) => {
 	try {
-		if (validateAgainstSchema(req.body, UserSchema) && (req.body.role in RoleSchema)) {
+		console.log(req.body);
+		if (validateAgainstSchema(req.body, UserSchema) && RoleSchema.includes(req.body.role) ) {
 			const user = extractValidFields(req.body, UserSchema)
 			const result = await insertNewUser(user);
 			res.status(201).send({
@@ -56,14 +59,16 @@ router.post('/', async (req, res, next) => {
 				}
 			});
 		} else {
-			next(err);
+			next(400);
 		}
 	} catch (err) {
-
+		next(err);
 	}
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// Needs testing
 
 /*
  * Log in a user
@@ -84,7 +89,7 @@ router.post('/login', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
 	try {
-		const id = parseInt(req.params.userid);
+		const id = parseInt(req.params.id);
 		const user = await getUserByID(id);
 		res.status(200).send(user);
 	} catch (err) {

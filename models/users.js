@@ -79,7 +79,7 @@ exports.insertNewUser = async function (user) {
 		const count = await collection.countDocuments();
 		userToInsert.id = count;
 		const result = await collection.insertOne(userToInsert);
-		return Promise.resolve( {"insertedId": result.insertedId, "id": userToInsert.id} );
+		return Promise.resolve( userToInsert.id );
 	} catch {
 		return Promise.reject(500);
 	}
