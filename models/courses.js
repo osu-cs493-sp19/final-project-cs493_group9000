@@ -39,11 +39,13 @@ exports.getCourses = async function () {
  */
 exports.insertNewCourse = async function (course) {
 	try {
-		const courseToInsert = extractValidFields(course, CourseSchema);
+		let courseToInsert = extractValidFields(course, CourseSchema);
 		const db = getDBReference();
 		const collection = db.collection('courses');
+		const count = await collection.countDocuments();
+		courseToInsert.id = count;
 		const result = await collection.insertOne(courseToInsert);
-		return Promise.resolve( {"insertedID": result.insertedId} );
+		return Promise.resolve( {"insertedID": courseToInsert.id } );
 	} catch {
 		return Promise.reject(500);
 	}
@@ -64,7 +66,7 @@ exports.getCourseByID = async function (courseID) {
 			return Promise.reject(404);
 		} else {
 			const results = await collection
-				.find({ _id: new ObjectId(courseID) })
+				.find({ id: courseID })
 				.toArray();
 			return Promise.resolve(results[0]);
 		}
@@ -106,7 +108,7 @@ exports.deleteCourse = async function (courseID) {
 		const db = getDBReference();
 		const collection = db.collection('courses');
 		const result = await collection.deleteOne(
-			{ "_id": ObjectId(courseID) }
+			{ "id": courseID }
 		);
 		if (result.deletedCount == 1) {
 			return Promise.resolve(reviewID);
@@ -128,7 +130,7 @@ exports.getStudentsInCourse = async function (courseID) {
 		const db = getDBReference();
 		const collection = db.collection('courses');
 		const results = await collection
-			.find({ "_id": ObjectId(courseID)})
+			.find({ "id": courseID })
 			.toArray();
 		if (results[0]) {
 			return Promise.resolve(results[0].studentIds);
@@ -201,7 +203,7 @@ exports.getAssignmentsOfCourse = async function (courseID) {
 		const db = getDBReference();
 		const collection = db.collection('assignments');
 		const results = await collection
-			.find({ "courseId": ObjectId(courseID)})
+			.find({ "courseId": courseID })
 			.toArray();
 		return Promise.resolve(results);
 	} catch {
