@@ -8,6 +8,7 @@ const { validateAgainstSchema,
 
 const { CourseSchema,
 		getCourses,
+		getCoursesPage,
 		insertNewCourse,
 		getCourseByID,
 		updateCourse,
@@ -22,15 +23,29 @@ const { CourseSchema,
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Fetch the list of all Courses.
  */
 router.get('/', async (req, res, next) => {
 	try {
-		const results = await getCourses();
-		res.status.send(results);
+		const page = parseInt(req.query.page) || 1;
+		// let results = await getCourses();
+		const results = await getCoursesPage(page);
+
+		/*
+		 * Generate HATEOAS links for surrounding pages.
+		 */
+		let links = {};
+		if (results.pageNumber < results.totalPages) {
+			links.nextPage = `/courses?page=${results.pageNumber + 1}`;
+			links.lastPage = `/courses?page=${results.totalPages}`;
+		}
+		if (results.pageNumber > 1) {
+			links.prevPage = `/courses?page=${results.pageNumber - 1}`;
+			links.firstPage = '/courses?page=1';
+		}
+
+		res.status(200).send({ ...results, links });
 	} catch (err) {
 		next(err);
 	}

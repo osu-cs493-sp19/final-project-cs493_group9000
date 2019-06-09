@@ -53,6 +53,7 @@ exports.getUserByID = async function (userID, includePassword) {
 		const results = await collection
 			.find({ id: userID })
 			.project(projection)
+			.project({ _id: 0, })
 			.toArray();
 		if (results[0]) {
 			return Promise.resolve(results[0]);

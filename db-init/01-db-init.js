@@ -1,3 +1,5 @@
+// passwords in here need to be hashed
+
 db.users.insertMany([
 	{
 		"id": 0,

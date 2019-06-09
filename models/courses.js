@@ -15,6 +15,7 @@ const CourseSchema = {
 };
 exports.CourseSchema = CourseSchema;
 
+const pageSize = 2;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -25,8 +26,55 @@ exports.getCourses = async function () {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('courses');
-		const results = await collection.find().toArray();
+		const results = await collection
+			.find()
+			.project({ 
+				_id: 0,
+				// id: 0,
+				studentIds: 0
+			})			
+			.toArray();
 		return Promise.resolve(results);
+	} catch {
+		return Promise.reject(500);
+	}
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get courses by page
+ */
+exports.getCoursesPage = async function (page) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('courses');
+
+		const count = await collection.countDocuments(); 
+		const lastPage = Math.ceil(count / pageSize);
+		page = (page > lastPage) ? lastPage : page;
+		page = (page < 1) ? 1 : page;
+		const offset = (page - 1) * pageSize;
+
+		const results = await collection
+			.find()
+			.sort({ id: 1 })
+			.skip(offset)
+			.limit(pageSize)
+			.project({ 
+				_id: 0,
+				// id: 0,
+				studentIds: 0
+			})			
+			.toArray();
+
+		return Promise.resolve({
+			courses: results,
+			pageNumber: page,
+			totalPages: lastPage,
+			pageSize: pageSize,
+			count: count
+		});
 	} catch {
 		return Promise.reject(500);
 	}
