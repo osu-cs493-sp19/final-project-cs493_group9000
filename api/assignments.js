@@ -8,6 +8,7 @@ const { validateAgainstSchema,
 
 const { AssignmentSchema,
 		SubmissionSchema,
+		getAssignments,
 		insertNewAssignment,
 		getAssignmentByID,
 		updateAssignment,
@@ -16,6 +17,22 @@ const { AssignmentSchema,
 		insertNewSubmission
 } = require('../models/assignments');
 
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// For testing purposes only
+
+/*
+ * Fetch the list of all assignments.
+ */
+router.get('/', async (req, res, next) => {
+	try {
+		const results = await getAssignments();
+		res.status(200).send(results);
+	} catch (err) {
+		next(err);
+	}
+});
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 

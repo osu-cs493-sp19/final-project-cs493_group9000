@@ -15,6 +15,12 @@ const CourseSchema = {
 };
 exports.CourseSchema = CourseSchema;
 
+
+/*
+ * Courses pagination page size
+ */ 
+// Change as needed
+// Set low currently to generate multiple pages
 const pageSize = 2;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =

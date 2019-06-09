@@ -29,7 +29,6 @@ const { CourseSchema,
 router.get('/', async (req, res, next) => {
 	try {
 		const page = parseInt(req.query.page) || 1;
-		// let results = await getCourses();
 		const results = await getCoursesPage(page);
 
 		/*

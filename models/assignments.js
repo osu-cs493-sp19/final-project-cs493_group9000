@@ -24,6 +24,32 @@ const SubmissionSchema = {
 }
 exports.SubmissionSchema = SubmissionSchema;
 
+/*
+ * Assignments pagination page size
+ */ 
+// const pageSize = 2;
+
+
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// For testing purposes only
+
+/*
+ * Get all assignments
+ */
+exports.getAssignments = async function () {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('assignments');
+		const results = await collection
+			.find()
+			.toArray();
+		return Promise.resolve(results);
+	} catch {
+		return Promise.reject(500);
+	}
+}
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
