@@ -26,6 +26,25 @@ app.use(express.static('public'));
  */
 app.use('/', api);
 
+app.use('*', function (err, req, res, next) {
+	console.error(err);
+	if (err == 404) {
+		res.status(404).json({
+			error: "Requested resource " + req.originalUrl + " does not exist"
+		});		
+	} else if (err == 400) {
+		res.status(400).json({
+			error: "Request body is not valid"
+		});
+	} else if (err == 500) {
+		res.status(500).json({
+			error: "An error occurred. Try again later."
+		});
+	}
+
+
+});
+
 app.use('*', function (req, res, next) {
 	res.status(404).json({
 		error: "Requested resource " + req.originalUrl + " does not exist"

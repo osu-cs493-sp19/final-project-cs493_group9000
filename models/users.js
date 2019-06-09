@@ -18,7 +18,7 @@ exports.UserSchema = UserSchema;
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
- * Get all user info
+ * Get all users
  */
 exports.getUsers = async function () {
 	try {

@@ -2,8 +2,12 @@ const router = require('express').Router();
 
 exports.router = router;
 
-const { validateAgainstSchema } = require('../lib/validation');
+const { validateAgainstSchema,
+		extractValidFields
+} = require('../lib/validation');
+
 const { AssignmentSchema,
+		SubmissionSchema,
 		insertNewAssignment,
 		getAssignmentByID,
 		updateAssignment,
@@ -13,45 +17,114 @@ const { AssignmentSchema,
 } = require('../models/assignments');
 
 
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
 /*
  * Create a new Assignment.
  */
 router.post('/', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		if (validateAgainstSchema(req.body, AssignmentSchema)) {
+			const assignment = extractValidFields(req.body, AssignmentSchema);
+			const result = await insertNewAssignment(assignment);
+			res.status(201).send({
+				"_id": result,
+				"links": {
+					"assignment": `/assignments/${result}`
+				}
+			});
+		} else {
+			next(err);
+		}
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /* 
  * Fetch data about a specific Assignment.
  */
 router.get('/:id', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const assignmentID = parseInt(req.params.id);
+		const assignment = await getAssignmentByID(assignmentID);
+		res.status(200).json(assignment);
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /* 
  * Update data for a specific Assignment.
  */
 router.patch('/:id', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const assignmentID = parseInt(req.params.id);
+		const assignmentUpdate = extractValidFields(req.body, AssignmentSchema);
+		const result = await updateAssignment(assignmentID, assignmentUpdate);
+		res.status(200).send();
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Remove a specific Assignment from the database.
  */ 
 router.delete('/:id', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const assignmentID = parseInt(req.params.id);
+		const result = await deleteAssignment(assignmentID);
+		res.status(204).send();
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /* 
  * Fetch the list of all Submissions for an Assignment.
  */
 router.get('/:id/submissions', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const assignmentID = parseInt(req.params.id);
+		const submissions = await getSubmissionsToAssignment(assignmentID);
+		res.status(200).json(submissions);
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /* 
  * Create a new Submission for an Assignment.
  */
 router.post('/:id/submissions', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const assignmentID = parseInt(req.params.id);
+		if (validateAgainstSchema(req.body, SubmissionSchema)) {
+			// This will need to be a multipart form data
+			const submission = extractValidFields(req.body, SubmissionSchema);
+			const id = await insertNewSubmission(submission);
+			res.status(201).send();
+		} else {
+			next(err);
+		}
+	} catch (err) {
+		next(err);
+	}
 });
+
+
+
+
+
 

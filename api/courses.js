@@ -2,7 +2,10 @@ const router = require('express').Router();
 
 exports.router = router;
 
-const { validateAgainstSchema } = require('../lib/validation');
+const { validateAgainstSchema,
+		extractValidFields
+} = require('../lib/validation');
+
 const { CourseSchema,
 		getCourses,
 		insertNewCourse,
@@ -10,73 +13,166 @@ const { CourseSchema,
 		updateCourse,
 		deleteCourse,
 		getStudentsInCourse,
-		addStudentToCouse,
+		addStudentToCourse,
+		removeStudentFromCourse,
 		getAssignmentsOfCourse
 } = require('../models/courses');
 
 
 
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
 /*
  * Fetch the list of all Courses.
  */
 router.get('/', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const results = await getCourses();
+		res.status.send(results);
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Create a new course.
  */
 router.post('/', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		if (validateAgainstSchema(req.body, CourseSchema)) {
+			const course = extractValidFields(req.body, CourseSchema);
+			const id = await insertNewCourse(course);
+			res.status(201).json({
+				"id": id,
+				"links": {
+					course: `/courses/${id}`
+				}
+			});
+		} else {
+			next(400);
+		}
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Fetch data about a specific Course.
  */
 router.get('/:id', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const courseID = parseInt(req.params.id);
+		const course = await getCourseByID(courseID);
+		res.status(200).json(course);
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Update data for a specific Course.
  */
-router.patch('/:id', async (req, res, next) => {
-	res.status(201).send({});
+router.patch ('/:id', async (req, res, next) => {
+	try {
+		const courseID = parseInt(req.params.id);
+		const courseUpdate = extractValidFields(req.body, CourseSchema);
+		const result = await updateCourse(courseID, courseUpdate);
+		res.status(200).send();
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Remove a specific Course from the database.
  */
 router.delete('/:id', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const courseID = parseInt(req.params.id);
+		const result = await deleteCourse(courseID);
+		res.status(204).send();
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Fetch a list of the students enrolled in the Course.
  */
 router.get('/:id/students', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const courseID = parseInt(req.params.id);
+		const students = await getStudentsInCourse(courseID);
+		res.status(200).json(students);
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Update enrollment for a Course.
  */
 router.post('/:id/students', async (req, res, next) => {
-	res.status(201).send({});
+	try {
+		// Students to Add
+		if (req.body.add) {
+			for (const toAdd of req.body.add) {
+				addStudentToCourse(toAdd);
+			}
+		}
+
+		// Students to Remove
+		if (req.body.remove) {
+			for (const toRemove of req.body.remove) {
+				removeStudentFromCourse(toRemove);
+			}
+		}
+
+		res.status(200).send();
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Fetch a CSV file containing list of the students enrolled in the Course.
  */
 router.get('/:id/roster', async (req, res, next) => {
 	res.status(200).send({});
+	try {
+
+	} catch (err) {
+		next(err);
+	}
 });
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
  * Fetch a list of the Assignments for the Course.
  */
 router.get('/:id/assignments', async (req, res, next) => {
-	res.status(200).send({});
+	try {
+		const courseID = parseInt(req.params.id);
+		const assignments = await getAssignmentsOfCourse(courseID);
+		res.status(200).json(assignments);
+	} catch (err) {
+		next(err);
+	}
 });
 
 

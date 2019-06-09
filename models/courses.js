@@ -145,13 +145,36 @@ exports.getStudentsInCourse = async function (courseID) {
 /*
  * Add a student to a course
  */
-exports.addStudentToCouse = async function (courseID, studentID) {
+exports.addStudentToCourse = async function (courseID, studentID) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('courses');
 		const result = await collection.updateOne(
 			{ "courseId": courseID },
 			{ $push: { students: studentID } }		
+		);
+		if (result.matchedCount == 1) {
+			return Promise.resolve(courseID);
+		} else {
+			return Promise.reject(404);
+		}
+	} catch {
+		return Promise.reject(500);
+	}
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Remove a student from a course
+ */
+exports.removeStudentFromCourse = async function (courseID, studentID) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('courses');
+		const result = await collection.deleteOne(
+			{ "courseId": courseID },
+			{ $pull: { students: studentID } }		
 		);
 		if (result.matchedCount == 1) {
 			return Promise.resolve(courseID);
