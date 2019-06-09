@@ -62,8 +62,6 @@ router.post('/', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /* 
  * Fetch data about a specific Assignment.
  */

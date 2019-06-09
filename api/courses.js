@@ -78,8 +78,6 @@ router.post('/', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Fetch data about a specific Course.
  */
@@ -200,8 +198,8 @@ router.get('/:id/roster', async (req, res, next) => {
 router.get('/:id/assignments', async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
-		const assignments = await getAssignmentsOfCourse(courseID);
-		res.status(200).json(assignments);
+		const assignmentsList = await getAssignmentsOfCourse(courseID);
+		res.status(200).json({ "assignments": assignmentsList });
 	} catch (err) {
 		next(err);
 	}

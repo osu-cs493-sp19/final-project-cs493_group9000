@@ -116,8 +116,17 @@ exports.getCourseByID = async function (courseID) {
 		const collection = db.collection('courses');
 		const results = await collection
 			.find({ id: courseID })
+			.project({ 
+				_id: 0,
+				id: 0,
+				studentIds: 0
+			})			
 			.toArray();
-		return Promise.resolve(results[0]);
+		if (results[0]) {
+			return Promise.resolve(results[0]);
+		} else {
+			return Promise.reject(404);
+		}
 	} catch {
 		return Promise.reject(500);
 	}
@@ -248,17 +257,25 @@ exports.removeStudentFromCourse = async function (courseID, studentID) {
  */
 exports.getAssignmentsOfCourse = async function (courseID) {
 	try {
+		// Verify that the course exists
+		const courseResults = await getDBReference().collection('courses').find({ id: courseID }).toArray();
+		if (!courseResults[0]){
+			return Promise.reject(404);
+		}
+
 		const db = getDBReference();
 		const collection = db.collection('assignments');
 		const results = await collection
 			.find({ "courseId": courseID })
 			.toArray();
-		return Promise.resolve(results);
+		if (results) {
+			return Promise.resolve( results.map( result => result.id ) );
+		} else {
+			return Promise.reject(404);
+		}
 	} catch {
 		return Promise.reject(500);
 	}
 }
-
-
 
 

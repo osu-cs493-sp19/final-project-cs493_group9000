@@ -81,8 +81,16 @@ exports.getAssignmentByID = async function (assignmentID) {
 		const collection = db.collection('assignments');
 		const results = await collection
 			.find({ id: assignmentID })
+			.project({ 
+				_id: 0,
+				id: 0
+			})			
 			.toArray();
-		return Promise.resolve(results[0]);
+		if (results[0]) {
+			return Promise.resolve(results[0]);
+		} else {
+			return Promise.reject(404);
+		}
 	} catch {
 		return Promise.reject(500);
 	}
