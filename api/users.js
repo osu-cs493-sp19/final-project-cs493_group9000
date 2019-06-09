@@ -7,6 +7,7 @@ const { validateAgainstSchema,
 } = require('../lib/validation');
 
 const { UserSchema,
+		RoleSchema,
 		getUsers,
 		getUserByID,
 		insertNewUser
@@ -45,7 +46,7 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res, next) => {
 	try {
-		if (validateAgainstSchema(req.body, UserSchema)) {
+		if (validateAgainstSchema(req.body, UserSchema) && (req.body.role in RoleSchema)) {
 			const user = extractValidFields(req.body, UserSchema)
 			const result = await insertNewUser(user);
 			res.status(201).send({
@@ -55,9 +56,6 @@ router.post('/', async (req, res, next) => {
 				}
 			});
 		} else {
-			// res.status(400).send({
-			// 	error: "Request body does not contain a valid User."
-			// });
 			next(err);
 		}
 	} catch (err) {

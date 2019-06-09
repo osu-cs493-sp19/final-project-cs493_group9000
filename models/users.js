@@ -14,6 +14,15 @@ const UserSchema = {
 };
 exports.UserSchema = UserSchema;
 
+/*
+ * Possible roles
+ */
+const RoleSchema = [
+	"admin",
+	"instructor",
+	"student"
+];
+exports.RoleSchema = RoleSchema;
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
