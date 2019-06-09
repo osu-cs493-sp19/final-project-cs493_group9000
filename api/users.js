@@ -34,10 +34,6 @@ router.get('/', async (req, res) => {
 		const results = await getUsers();
 		res.status(200).send(results);
 	} catch (err) {
-		// console.log(err);
-		// res.status(500).send({
-		// 	error: "Error fetching users.  Try again later."
-		// });
 		next(err);
 	}
 });
@@ -91,9 +87,10 @@ router.post('/login', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
 	try {
 		const id = parseInt(req.params.userid);
-		const user = await getUserInfo(id);
+		const user = await getUserByID(id);
 		res.status(200).send(user);
 	} catch (err) {
+		console.log("Error: ", err);
 		next(err);
 	}
 });

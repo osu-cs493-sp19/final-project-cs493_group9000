@@ -32,11 +32,13 @@ exports.SubmissionSchema = SubmissionSchema;
  */
 exports.insertNewAssignment = async function (assignment) {
 	try {
-		const assignmentToInsert = extractValidFields(assignment, AssignmentSchema);
+		let assignmentToInsert = extractValidFields(assignment, AssignmentSchema);
 		const db = getDBReference();
 		const collection = db.collection('assignments');
+		const count = await collection.countDocuments();
+		assignmentToInsert.id = count;
 		const result = await collection.insertOne(assignmentToInsert);
-		return Promise.resolve( {"insertedID": result.insertedId} );
+		return Promise.resolve( {"insertedID": assignmentToInsert.id } );
 	} catch {
 		return Promise.reject(500);
 	}
@@ -51,15 +53,10 @@ exports.getAssignmentByID = async function (assignmentID) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('assignments');
-		if (!ObjectId.isValid(assignmentID)) {
-			console.log("AssignmentID", assignmentID, "is not valid");
-			return Promise.reject(404);
-		} else {
-			const results = await collection
-				.find({ _id: new ObjectId(assignmentID) })
-				.toArray();
-			return Promise.resolve(results[0]);
-		}
+		const results = await collection
+			.find({ id: assignmentID })
+			.toArray();
+		return Promise.resolve(results[0]);
 	} catch {
 		return Promise.reject(500);
 	}
@@ -98,7 +95,7 @@ exports.deleteAssignment = async function (assignmentID) {
 		const db = getDBReference();
 		const collection = db.collection('assignments');
 		const result = await collection.deleteOne(
-			{ "_id": ObjectId(courseID) }
+			{ "id": courseID }
 		);
 		if (result.deletedCount == 1) {
 			return Promise.resolve(reviewID);

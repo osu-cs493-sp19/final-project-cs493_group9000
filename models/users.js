@@ -40,16 +40,15 @@ exports.getUserByID = async function (userID, includePassword) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('users');
-		if (!ObjectId.isValid(userID)) {
-			console.log("UserID", userID, "is not valid");
-			return Promise.reject(404);
-		} else {
-			const projection = includePassword ? {} : { password: 0 };
-			const results = await collection
-				.find({ _id: new ObjectId(userID) })
-				.project(projection)
-				.toArray();
+		const projection = includePassword ? {} : { password: 0 };
+		const results = await collection
+			.find({ id: userID })
+			.project(projection)
+			.toArray();
+		if (results[0]) {
 			return Promise.resolve(results[0]);
+		} else {
+			return Promise.reject(404);
 		}
 	} catch {
 		return Promise.reject(500);
@@ -63,13 +62,15 @@ exports.getUserByID = async function (userID, includePassword) {
  */
 exports.insertNewUser = async function (user) {
 	try {
-		const userToInsert = extractValidFields(user, UserSchema);
+		let userToInsert = extractValidFields(user, UserSchema);
 		const db = getDBReference();
 		const collection = db.collection('users');
 		const passwordHash = await bcrypt.hash(userToInsert.password, 8);
 		userToInsert.password = passwordHash;
+		const count = await collection.countDocuments();
+		userToInsert.id = count;
 		const result = await collection.insertOne(userToInsert);
-		return Promise.resolve( {"insertedID": result.insertedId} );
+		return Promise.resolve( {"insertedId": result.insertedId, "id": userToInsert.id} );
 	} catch {
 		return Promise.reject(500);
 	}
