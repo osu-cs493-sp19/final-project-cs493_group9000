@@ -15,12 +15,19 @@ const { UserSchema,
 
 const { generateAuthToken, 
 		requireAuthentication, 
-		isAdmin, 
-		isAuthorizedGet, 
-		validateUserEmail,
-		createAdminPermission 
+		// isAdmin, 
+		// isAuthorizedGet, 
+		validateUserEmail
+		// createAdminPermission 
 } = require('../lib/auth');
 
+/*
+ * Schema for a logging in a user.
+ */
+const LoginSchema = {
+	email:		{ required: true },
+	password:	{ required: true }
+};
 
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -67,15 +74,25 @@ router.post('/', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Log in a user
  */
 router.post('/login', async (req, res, next) => {
-	res.status(200).send({});
 	try {
-
+		if (validateAgainstSchema(req.body, LoginSchema)) {
+			const credentials = extractValidFields(req.body, LoginSchema);
+			const result = await validateUserEmail(credentials.email, credentials.password);
+			if (result.authenticated) {
+				const token = generateAuthToken(result.id);
+				res.status(200).send({
+					token: token
+				});
+			} else {
+				next(401);
+			}
+		} else {
+			next(400);
+		}
 	} catch (err) {
 		next(err);
 	}

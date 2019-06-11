@@ -40,13 +40,15 @@ app.use('*', function (err, req, res, next) {
 		res.status(500).json({
 			error: "An error occurred. Try again later."
 		});
-	}
-	else if (err == 403) {
+	} else if (err == 403) {
 		res.status(403).json({
 			error: "Operation forbidden"
 		});
+	} else if (err == 401) {
+		res.status(401).json({
+			error: "Invalid credentials"
+		});
 	}
-
 });
 
 app.use('*', function (req, res, next) {

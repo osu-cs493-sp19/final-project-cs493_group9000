@@ -68,6 +68,31 @@ exports.getUserByID = async function (userID, includePassword) {
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
+ * Get user info by email
+ */
+exports.getUserByEmail = async function (email, includePassword) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('users');
+		const projection = includePassword ? {} : { password: 0 };
+		const results = await collection
+			.find({ email: email })
+			// .project(projection)
+			.project({ _id: 0, })
+			.toArray();
+		if (results[0]) {
+			return Promise.resolve(results[0]);
+		} else {
+			return Promise.reject(404);
+		}
+	} catch {
+		return Promise.reject(500);
+	}
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
  * Insert a new User into the DB.
  */
 exports.insertNewUser = async function (user) {
