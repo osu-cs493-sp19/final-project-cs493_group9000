@@ -11,7 +11,8 @@ const { UserSchema,
 		getUsers,
 		getUserByID,
 		insertNewUser,
-		getCoursesTaught
+		getCoursesTaught,
+		getCoursesEnrolledIn
 } = require('../models/users');
 
 const { generateAuthToken, 
@@ -110,7 +111,10 @@ router.get('/:id', async (req, res, next) => {
 		const user = await getUserByID(id);
 		if (user.role === 'instructor') {
 			const coursesTaught = await getCoursesTaught(id);
-			var result = { ...user, coursesTaught: coursesTaught } ;
+			var result = { ...user, coursesTaught: coursesTaught };
+		} else if (user.role === 'student') {
+			const coursesTaking = await getCoursesEnrolledIn(id);
+			var result = { ...user, coursesTaking: coursesTaking };
 		} else {
 			var result = user;
 		}

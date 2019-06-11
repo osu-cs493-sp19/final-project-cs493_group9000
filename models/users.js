@@ -132,10 +132,28 @@ exports.getCoursesTaught = async function (instructorID) {
 		const collection = db.collection('courses');
 		const results = await collection
 			.find({ instructorId: instructorID })
-			// .project({ 
-			// 	_id: 0,
-			// 	id: 1,
-			// })			
+			.toArray();
+		if (results) {
+			return Promise.resolve( results.map( result => result.id ) );
+		} else {
+			return Promise.reject(404);
+		}
+	} catch {
+		return Promise.reject(500);
+	}
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get all assignments in a course
+ */
+exports.getCoursesEnrolledIn = async function (studentID) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('courses');
+		const results = await collection
+			.find({ studentIds: studentID })
 			.toArray();
 		if (results) {
 			return Promise.resolve( results.map( result => result.id ) );
