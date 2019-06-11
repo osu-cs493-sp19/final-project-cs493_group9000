@@ -121,6 +121,32 @@ exports.insertNewUser = async function (user) {
 	}
 };
 
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get all assignments in a course
+ */
+exports.getCoursesTaught = async function (instructorID) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('courses');
+		const results = await collection
+			.find({ instructorId: instructorID })
+			// .project({ 
+			// 	_id: 0,
+			// 	id: 1,
+			// })			
+			.toArray();
+		if (results) {
+			return Promise.resolve( results.map( result => result.id ) );
+		} else {
+			return Promise.reject(404);
+		}
+	} catch {
+		return Promise.reject(500);
+	}
+}
+
 
 
 

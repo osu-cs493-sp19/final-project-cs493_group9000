@@ -275,6 +275,7 @@ exports.getStudentsInCourse = async function (courseID) {
 		return Promise.reject(500);
 	}
 }
+
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
@@ -302,5 +303,3 @@ exports.getAssignmentsOfCourse = async function (courseID) {
 		return Promise.reject(500);
 	}
 }
-
-
