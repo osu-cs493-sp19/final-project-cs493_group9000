@@ -10,7 +10,7 @@ const UserSchema = {
 	name:		{ required: true },
 	email:		{ required: true },
 	password:	{ required: true },
-	role:		{ required: true }
+	role:		{ required: true, enum: ["admin", "instructor", "student"] }
 };
 exports.UserSchema = UserSchema;
 

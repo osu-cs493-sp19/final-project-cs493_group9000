@@ -36,24 +36,24 @@ router.get('/', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Create a new Assignment.
  */
 router.post('/', async (req, res, next) => {
 	try {
+		console.log("req.body:", req.body);
 		if (validateAgainstSchema(req.body, AssignmentSchema)) {
 			const assignment = extractValidFields(req.body, AssignmentSchema);
+			console.log("assignment:", assignment);
 			const result = await insertNewAssignment(assignment);
 			res.status(201).send({
-				"_id": result,
+				"_id": result.insertedID,
 				"links": {
-					"assignment": `/assignments/${result}`
+					"assignment": `/assignments/${result.insertedID}`
 				}
 			});
 		} else {
-			next(err);
+			next(400);
 		}
 	} catch (err) {
 		next(err);
@@ -77,8 +77,6 @@ router.get('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /* 
  * Update data for a specific Assignment.
  */
@@ -94,8 +92,6 @@ router.patch('/:id', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
-
-// Needs testing
 
 /*
  * Remove a specific Assignment from the database.

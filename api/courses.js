@@ -14,8 +14,8 @@ const { CourseSchema,
 		updateCourse,
 		deleteCourse,
 		getStudentsInCourse,
-		addStudentToCourse,
-		removeStudentFromCourse,
+		addStudentsToCourse,
+		removeStudentsFromCourse,
 		getAssignmentsOfCourse
 } = require('../models/courses');
 
@@ -52,8 +52,6 @@ router.get('/', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Create a new course.
  */
@@ -61,11 +59,11 @@ router.post('/', async (req, res, next) => {
 	try {
 		if (validateAgainstSchema(req.body, CourseSchema)) {
 			const course = extractValidFields(req.body, CourseSchema);
-			const id = await insertNewCourse(course);
+			const result = await insertNewCourse(course);
 			res.status(201).json({
-				"id": id,
+				"id": result.insertedID,
 				"links": {
-					course: `/courses/${id}`
+					course: `/courses/${result.insertedID}`
 				}
 			});
 		} else {
@@ -93,7 +91,7 @@ router.get('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
+// Works unless clearing fields
 
 /*
  * Update data for a specific Course.
@@ -111,8 +109,6 @@ router.patch ('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Remove a specific Course from the database.
  */
@@ -128,8 +124,6 @@ router.delete('/:id', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Fetch a list of the students enrolled in the Course.
  */
@@ -137,7 +131,7 @@ router.get('/:id/students', async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
 		const students = await getStudentsInCourse(courseID);
-		res.status(200).json(students);
+		res.status(200).json({ "students": students });
 	} catch (err) {
 		next(err);
 	}
@@ -145,24 +139,26 @@ router.get('/:id/students', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Update enrollment for a Course.
  */
 router.post('/:id/students', async (req, res, next) => {
 	try {
+		const courseID = parseInt(req.params.id);
+
 		// Students to Add
 		if (req.body.add) {
-			for (const toAdd of req.body.add) {
-				addStudentToCourse(toAdd);
+			let result = await addStudentsToCourse(courseID, req.body.add);
+			if (result != courseID) {
+				next(500);
 			}
 		}
 
 		// Students to Remove
 		if (req.body.remove) {
-			for (const toRemove of req.body.remove) {
-				removeStudentFromCourse(toRemove);
+			let result = await removeStudentsFromCourse(courseID, req.body.remove);
+			if (result != courseID) {
+				next(500);
 			}
 		}
 
@@ -189,8 +185,6 @@ router.get('/:id/roster', async (req, res, next) => {
 });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
-
-// Needs testing
 
 /*
  * Fetch a list of the Assignments for the Course.

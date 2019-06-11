@@ -1,12 +1,13 @@
 const { getDBReference } = require('../lib/mongo');
 const { ObjectId } = require('mongodb');
 const { extractValidFields } = require('../lib/validation');
+const dot = require('mongo-dot-notation');
 
 /*
  * Schema for an Assignment.
  */
 const AssignmentSchema = {
-	courseId:	{ required: true },
+	courseId:	{ required: true, type: "integer" },
 	title:		{ required: true },
 	points:		{ required: true },
 	due:		{ required: true }
@@ -44,6 +45,9 @@ exports.getAssignments = async function () {
 		const collection = db.collection('assignments');
 		const results = await collection
 			.find()
+			.project({ 
+				_id: 0
+			})			
 			.toArray();
 		return Promise.resolve(results);
 	} catch {
@@ -105,9 +109,9 @@ exports.updateAssignment = async function (assignmentID, assignmentUpdate) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('assignments');
-		const result = await collection.findAndModify(
-			{ "assignmentId": assignmentID },
-			{ $update: assignmentUpdate }		// This might not be exactly correct
+		const result = await collection.updateOne(
+			{ "id": assignmentID },
+			dot.flatten(assignmentUpdate)
 		);
 		if (result.matchedCount == 1) {
 			return Promise.resolve(assignmentID);
@@ -129,10 +133,10 @@ exports.deleteAssignment = async function (assignmentID) {
 		const db = getDBReference();
 		const collection = db.collection('assignments');
 		const result = await collection.deleteOne(
-			{ "id": courseID }
+			{ "id": assignmentID }
 		);
 		if (result.deletedCount == 1) {
-			return Promise.resolve(reviewID);
+			return Promise.resolve(assignmentID);
 		} else {
 			return Promise.reject(404);
 		}

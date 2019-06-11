@@ -1,6 +1,7 @@
 const { getDBReference } = require('../lib/mongo');
 const { ObjectId } = require('mongodb');
 const { extractValidFields } = require('../lib/validation');
+const dot = require('mongo-dot-notation');
 
 /*
  * Schema for a Course.
@@ -98,6 +99,7 @@ exports.insertNewCourse = async function (course) {
 		const collection = db.collection('courses');
 		const count = await collection.countDocuments();
 		courseToInsert.id = count;
+		courseToInsert.studentIds;
 		const result = await collection.insertOne(courseToInsert);
 		return Promise.resolve( {"insertedID": courseToInsert.id } );
 	} catch {
@@ -141,9 +143,9 @@ exports.updateCourse = async function (courseID, courseUpdate) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('courses');
-		const result = await collection.findAndModify(
-			{ "courseId": courseID },
-			{ $update: courseUpdate }		// This might not be exactly correct
+		const result = await collection.updateOne(
+			{ "id": courseID },
+			dot.flatten(courseUpdate)
 		);
 		if (result.matchedCount == 1) {
 			return Promise.resolve(courseID);
@@ -168,7 +170,7 @@ exports.deleteCourse = async function (courseID) {
 			{ "id": courseID }
 		);
 		if (result.deletedCount == 1) {
-			return Promise.resolve(reviewID);
+			return Promise.resolve(courseID);
 		} else {
 			return Promise.reject(404);
 		}
@@ -204,14 +206,15 @@ exports.getStudentsInCourse = async function (courseID) {
 /*
  * Add a student to a course
  */
-exports.addStudentToCourse = async function (courseID, studentID) {
+exports.addStudentsToCourse = async function (courseID, studentIDs) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('courses');
 		const result = await collection.updateOne(
-			{ "courseId": courseID },
-			{ $push: { students: studentID } }		
+			{ "id": courseID },
+			{ $push: { "studentIds": { $each: studentIDs } } }	
 		);
+
 		if (result.matchedCount == 1) {
 			return Promise.resolve(courseID);
 		} else {
@@ -227,14 +230,15 @@ exports.addStudentToCourse = async function (courseID, studentID) {
 /*
  * Remove a student from a course
  */
-exports.removeStudentFromCourse = async function (courseID, studentID) {
+exports.removeStudentsFromCourse = async function (courseID, studentIDs) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('courses');
-		const result = await collection.deleteOne(
-			{ "courseId": courseID },
-			{ $pull: { students: studentID } }		
+		const result = await collection.updateOne(
+			{ "id": courseID },
+			{ $pull: { "studentIds": { $in: studentIDs } } }	
 		);
+
 		if (result.matchedCount == 1) {
 			return Promise.resolve(courseID);
 		} else {
