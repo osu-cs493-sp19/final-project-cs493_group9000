@@ -182,9 +182,9 @@ exports.deleteCourse = async function (courseID) {
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
- * Get list of students in a course
+ * Get list of student IDs in a course
  */
-exports.getStudentsInCourse = async function (courseID) {
+exports.getStudentIDsInCourse = async function (courseID) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('courses');
@@ -251,9 +251,30 @@ exports.removeStudentsFromCourse = async function (courseID, studentIDs) {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Probably no need for a function to return CSV, 
-// that will be handled by API via get courses/:id/students
+/*
+ * Get info of students in a course
+ */
+exports.getStudentsInCourse = async function (courseID) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('users');
 
+		const tmp = await db.collection('courses').find({ "id": courseID }).toArray();
+		const studentIDs = tmp[0] ? tmp[0].studentIds : []
+
+		const results = await collection.find(
+			{ id: { $in: studentIDs } }
+		).toArray();
+
+		if (results) {
+			return Promise.resolve(results);
+		} else {
+			return Promise.reject(404);
+		}
+	} catch {
+		return Promise.reject(500);
+	}
+}
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*

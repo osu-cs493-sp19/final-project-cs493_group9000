@@ -13,11 +13,14 @@ const { CourseSchema,
 		getCourseByID,
 		updateCourse,
 		deleteCourse,
-		getStudentsInCourse,
+		getStudentIDsInCourse,
 		addStudentsToCourse,
 		removeStudentsFromCourse,
+		getStudentsInCourse,
 		getAssignmentsOfCourse
 } = require('../models/courses');
+
+const { Parser } = require('json2csv');
 
 
 
@@ -130,7 +133,7 @@ router.delete('/:id', async (req, res, next) => {
 router.get('/:id/students', async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
-		const students = await getStudentsInCourse(courseID);
+		const students = await getStudentIDsInCourse(courseID);
 		res.status(200).json({ "students": students });
 	} catch (err) {
 		next(err);
@@ -170,15 +173,20 @@ router.post('/:id/students', async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
-
 /*
  * Fetch a CSV file containing list of the students enrolled in the Course.
  */
 router.get('/:id/roster', async (req, res, next) => {
-	res.status(200).send({});
 	try {
+		const courseID = parseInt(req.params.id);
+		const students = await getStudentsInCourse(courseID);
 
+		const fields = ['id', 'name', 'email'];
+		const jsonParser = new Parser({fields});
+		const csv = jsonParser.parse(students);
+
+		res.attachment('course-'+courseID+'-students.csv');
+		res.status(200).send(csv);
 	} catch (err) {
 		next(err);
 	}
