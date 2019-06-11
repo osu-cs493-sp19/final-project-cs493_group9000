@@ -181,6 +181,7 @@ router.get('/:id/roster', async (req, res, next) => {
 		const courseID = parseInt(req.params.id);
 		const students = await getStudentsInCourse(courseID);
 
+		// Generate CSV
 		const fields = ['id', 'name', 'email'];
 		const jsonParser = new Parser({fields});
 		const csv = jsonParser.parse(students);

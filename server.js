@@ -41,7 +41,11 @@ app.use('*', function (err, req, res, next) {
 			error: "An error occurred. Try again later."
 		});
 	}
-
+	else if (err == 403) {
+		res.status(403).json({
+			error: "Operation forbidden"
+		});
+	}
 
 });
 

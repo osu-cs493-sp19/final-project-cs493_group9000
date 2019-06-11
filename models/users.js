@@ -52,7 +52,7 @@ exports.getUserByID = async function (userID, includePassword) {
 		const projection = includePassword ? {} : { password: 0 };
 		const results = await collection
 			.find({ id: userID })
-			.project(projection)
+			// .project(projection)
 			.project({ _id: 0, })
 			.toArray();
 		if (results[0]) {
@@ -75,13 +75,30 @@ exports.insertNewUser = async function (user) {
 		let userToInsert = extractValidFields(user, UserSchema);
 		const db = getDBReference();
 		const collection = db.collection('users');
-		const passwordHash = await bcrypt.hash(userToInsert.password, 8);
-		userToInsert.password = passwordHash;
-		const count = await collection.countDocuments();
-		userToInsert.id = count;
-		const result = await collection.insertOne(userToInsert);
-		return Promise.resolve( userToInsert.id );
+
+		// Verify email is unique
+		const tmp = await collection.find({ email: userToInsert.email }).toArray();
+		const emailExists = !!tmp[0];
+
+		if (emailExists) {
+			console.log("Email already exists");
+			return Promise.reject(403);
+		} else {
+			const passwordHash = await bcrypt.hash(userToInsert.password, 8);
+			userToInsert.password = passwordHash;
+			const count = await collection.countDocuments();
+			userToInsert.id = count;
+			const result = await collection.insertOne(userToInsert);
+			return Promise.resolve( userToInsert.id );
+		}
 	} catch {
 		return Promise.reject(500);
 	}
 };
+
+
+
+
+
+
+

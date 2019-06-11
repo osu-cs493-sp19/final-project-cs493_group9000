@@ -7,7 +7,7 @@ const { validateAgainstSchema,
 } = require('../lib/validation');
 
 const { UserSchema,
-		// RoleSchema,
+		RoleSchema,
 		getUsers,
 		getUserByID,
 		insertNewUser
@@ -41,16 +41,14 @@ router.get('/', async (req, res) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Should make sure email is unique
-
 /*
  * Create a new user
  */
 router.post('/', async (req, res, next) => {
 	try {
 		console.log(req.body);
-		// if (validateAgainstSchema(req.body, UserSchema) && RoleSchema.includes(req.body.role) ) {
-		if (validateAgainstSchema(req.body, UserSchema)) {
+		if (validateAgainstSchema(req.body, UserSchema) && RoleSchema.includes(req.body.role) ) {
+		// if (validateAgainstSchema(req.body, UserSchema)) {
 			const user = extractValidFields(req.body, UserSchema)
 			const result = await insertNewUser(user);
 			res.status(201).send({

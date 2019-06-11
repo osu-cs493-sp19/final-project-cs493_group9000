@@ -5,63 +5,63 @@ db.users.insertMany([
 		"id": 0,
 		"name": "administratorA",
 		"email": "adminA@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$MWttXRDduccCPLQGHEaQdeJwiqDykoW9a3kVMhmobJ66oDyeCqCOO",
 		"role": "admin"
 	},
 	{
 		"id": 1,
 		"name": "Rob Hess",
 		"email": "hessro@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$w6OiDosGsPdTlEbdN8Vr9Oh5xJnaCcynDNQjCTAE8y.ToUMNDtfLK",
 		"role": "instructor"
 	},
 	{
 		"id": 2,
 		"name": "instructorB",
 		"email": "instructorB@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$y3tMt3fRtPU8iv6oCNHGIuRN476jhPmT/CFUEs9MnH8X1D9q4mI7y",
 		"role": "instructor"
 	},
 	{
 		"id": 3,
 		"name": "instructorC",
 		"email": "instructorC@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$IesEVUs7ZHKULbnSUkKAUuUP6CM.5zHsHorCdAPfCO/CWyGczW2Li",
 		"role": "instructor"
 	},
 	{
 		"id": 4,
 		"name": "studentA",
 		"email": "studentA@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$7rfS0iGOgl/0yg5Dur6aN./pYokiNWprGW/jdLsYaAaKRe9j2e5iO",
 		"role": "student"
 	},
 	{
 		"id": 5,
 		"name": "studentB",
 		"email": "studentB@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$Z06toZcLf1Yn88C7JbnXSetyynFht2hgXshLxWEPMjqk/1.kSPjwu",
 		"role": "student"
 	},
 	{
 		"id": 6,
 		"name": "studentC",
 		"email": "studentC@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$GHg/1a81nUBDfWzaLqYIsuwoYyjbFk0mEitcXCYtVzhUsPIVclM/2",
 		"role": "student"
 	},
 	{
 		"id": 7,
 		"name": "studentD",
 		"email": "studentD@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$.OLUYV4IMW4RvmE6NmPjK.W8m1seGRcwRGZ.2vxZ1UMxtgyAZ6Oz6",
 		"role": "student"
 	},
 	{
 		"id": 8,
 		"name": "studentE",
 		"email": "studentE@oregonstate.edu",
-		"password": "hunter2",
+		"password": "$2a$08$hMdrfzjNjkM4ukHY0jjZy.cdnunbbW3f1EYXcRIeEPeUWzoOeFTfm",
 		"role": "student"
 	}
 ]);
