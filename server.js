@@ -42,11 +42,15 @@ app.use('*', function (err, req, res, next) {
 		});
 	} else if (err == 403) {
 		res.status(403).json({
-			error: "Operation forbidden"
+			error: "Not authorized"
 		});
 	} else if (err == 401) {
 		res.status(401).json({
 			error: "Invalid credentials"
+		});
+	} else {
+		res.status(err).json({
+			error: "Unknown error"
 		});
 	}
 });

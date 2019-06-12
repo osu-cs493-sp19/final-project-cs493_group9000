@@ -16,9 +16,11 @@ const { UserSchema,
 } = require('../models/users');
 
 const { generateAuthToken, 
-		requireAuthentication, 
+		validateJWT, 
 		// isAdmin, 
-		// isAuthorizedGet, 
+		// getPermissions,
+		getRole,
+		// getPermissionsGet, 
 		validateUserEmail
 		// createAdminPermission 
 } = require('../lib/auth');
@@ -83,7 +85,10 @@ router.post('/login', async (req, res, next) => {
 	try {
 		if (validateAgainstSchema(req.body, LoginSchema)) {
 			const credentials = extractValidFields(req.body, LoginSchema);
+
+			console.log("credentials:", credentials);
 			const result = await validateUserEmail(credentials.email, credentials.password);
+			console.log("result:", result);
 			if (result.authenticated) {
 				const token = generateAuthToken(result.id);
 				res.status(200).send({
@@ -103,22 +108,35 @@ router.post('/login', async (req, res, next) => {
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
- * Fetch data about a specific user
+ * Fetch data about a specific use
  */
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', validateJWT, getRole, async (req, res, next) => {
 	try {
+
+		// console.log("REQ.params:\n", req.params);
+		// console.log("REQ.permissions:\n", req.permissions);
+		// console.log("REQ.role:\n", req.role);
+
 		const id = parseInt(req.params.id);
-		const user = await getUserByID(id);
-		if (user.role === 'instructor') {
-			const coursesTaught = await getCoursesTaught(id);
-			var result = { ...user, coursesTaught: coursesTaught };
-		} else if (user.role === 'student') {
-			const coursesTaking = await getCoursesEnrolledIn(id);
-			var result = { ...user, coursesTaking: coursesTaking };
+
+		if ((req.tokenUserID === id) || (req.tokenUserRole === 'admin')) {
+
+			const user = await getUserByID(id);
+			if (user.role === 'instructor') {
+				const coursesTaught = await getCoursesTaught(id);
+				var result = { ...user, coursesTaught: coursesTaught };
+			} else if (user.role === 'student') {
+				const coursesTaking = await getCoursesEnrolledIn(id);
+				var result = { ...user, coursesTaking: coursesTaking };
+			} else {
+				var result = user;
+			}
+
+			res.status(200).send(result);
 		} else {
-			var result = user;
+			next(403);
 		}
-		res.status(200).send(result);
+	
 	} catch (err) {
 		console.log("Error: ", err);
 		next(err);

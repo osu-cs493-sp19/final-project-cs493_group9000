@@ -17,6 +17,10 @@ const { AssignmentSchema,
 		insertNewSubmission
 } = require('../models/assignments');
 
+const { validateJWT,
+		getRole
+} = require('../lib/auth');
+
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 

@@ -303,3 +303,30 @@ exports.getAssignmentsOfCourse = async function (courseID) {
 		return Promise.reject(500);
 	}
 }
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get ID of the instructor of the course 
+ */
+exports.getCourseInstructorID = async function (courseID) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('courses');
+		const results = await collection
+			.find({ id: courseID })
+			.project({ 
+				_id: 0,
+				id: 0,
+				studentIds: 0
+			})			
+			.toArray();
+		if (results[0]) {
+			return Promise.resolve(results[0].instructorId);
+		} else {
+			return Promise.reject(404);
+		}
+	} catch {
+		return Promise.reject(500);
+	}
+}

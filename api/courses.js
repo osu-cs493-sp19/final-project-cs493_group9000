@@ -17,8 +17,14 @@ const { CourseSchema,
 		addStudentsToCourse,
 		removeStudentsFromCourse,
 		getStudentsInCourse,
-		getAssignmentsOfCourse
+		getAssignmentsOfCourse,
+		getCourseInstructorID
 } = require('../models/courses');
+
+const { validateJWT,
+		getRole,
+		requireIsAdmin
+} = require('../lib/auth');
 
 const { Parser } = require('json2csv');
 
@@ -58,7 +64,8 @@ router.get('/', async (req, res, next) => {
 /*
  * Create a new course.
  */
-router.post('/', async (req, res, next) => {
+router.post('/', validateJWT, getRole, requireIsAdmin, async (req, res, next) => {
+// router.post('/', validateJWT, getRole, async (req, res, next) => {
 	try {
 		if (validateAgainstSchema(req.body, CourseSchema)) {
 			const course = extractValidFields(req.body, CourseSchema);
@@ -99,12 +106,17 @@ router.get('/:id', async (req, res, next) => {
 /*
  * Update data for a specific Course.
  */
-router.patch ('/:id', async (req, res, next) => {
+router.patch ('/:id', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
-		const courseUpdate = extractValidFields(req.body, CourseSchema);
-		const result = await updateCourse(courseID, courseUpdate);
-		res.status(200).send();
+		const instructorID = await getCourseInstructorID(courseID);
+		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
+			const courseUpdate = extractValidFields(req.body, CourseSchema);
+			const result = await updateCourse(courseID, courseUpdate);
+			res.status(200).send(); 
+		} else {
+			next(403);
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -115,7 +127,7 @@ router.patch ('/:id', async (req, res, next) => {
 /*
  * Remove a specific Course from the database.
  */
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', validateJWT, getRole, requireIsAdmin, async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
 		const result = await deleteCourse(courseID);
@@ -130,11 +142,16 @@ router.delete('/:id', async (req, res, next) => {
 /*
  * Fetch a list of the students enrolled in the Course.
  */
-router.get('/:id/students', async (req, res, next) => {
+router.get('/:id/students', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
-		const students = await getStudentIDsInCourse(courseID);
-		res.status(200).json({ "students": students });
+		const instructorID = await getCourseInstructorID(courseID);
+		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
+			const students = await getStudentIDsInCourse(courseID);
+			res.status(200).json({ "students": students });
+		} else {
+			next(403);
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -145,27 +162,32 @@ router.get('/:id/students', async (req, res, next) => {
 /*
  * Update enrollment for a Course.
  */
-router.post('/:id/students', async (req, res, next) => {
+router.post('/:id/students', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
+		const instructorID = await getCourseInstructorID(courseID);
+		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
 
-		// Students to Add
-		if (req.body.add) {
-			let result = await addStudentsToCourse(courseID, req.body.add);
-			if (result != courseID) {
-				next(500);
+			// Students to Add
+			if (req.body.add) {
+				let result = await addStudentsToCourse(courseID, req.body.add);
+				if (result != courseID) {
+					next(500);
+				}
 			}
-		}
 
-		// Students to Remove
-		if (req.body.remove) {
-			let result = await removeStudentsFromCourse(courseID, req.body.remove);
-			if (result != courseID) {
-				next(500);
+			// Students to Remove
+			if (req.body.remove) {
+				let result = await removeStudentsFromCourse(courseID, req.body.remove);
+				if (result != courseID) {
+					next(500);
+				}
 			}
-		}
 
-		res.status(200).send();
+			res.status(200).send();
+		} else {
+			next(403);
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -176,18 +198,24 @@ router.post('/:id/students', async (req, res, next) => {
 /*
  * Fetch a CSV file containing list of the students enrolled in the Course.
  */
-router.get('/:id/roster', async (req, res, next) => {
+router.get('/:id/roster', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const courseID = parseInt(req.params.id);
-		const students = await getStudentsInCourse(courseID);
+		const instructorID = await getCourseInstructorID(courseID);
+		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
 
-		// Generate CSV
-		const fields = ['id', 'name', 'email'];
-		const jsonParser = new Parser({fields});
-		const csv = jsonParser.parse(students);
+			const students = await getStudentsInCourse(courseID);
 
-		res.attachment('course-'+courseID+'-students.csv');
-		res.status(200).send(csv);
+			// Generate CSV
+			const fields = ['id', 'name', 'email'];
+			const jsonParser = new Parser({fields});
+			const csv = jsonParser.parse(students);
+
+			res.attachment('course-'+courseID+'-students.csv');
+			res.status(200).send(csv);
+		} else {
+			next(403);
+		}
 	} catch (err) {
 		next(err);
 	}
