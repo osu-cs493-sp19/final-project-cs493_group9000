@@ -14,8 +14,11 @@ const { AssignmentSchema,
 		updateAssignment,
 		deleteAssignment,
 		getSubmissionsToAssignment,
-		insertNewSubmission
+		insertNewSubmission,
+		getAssignmentInstructorID
 } = require('../models/assignments');
+
+const { studentEnrolledInCourse } = require('../models/courses');
 
 const { validateJWT,
 		getRole
@@ -43,19 +46,24 @@ router.get('/', async (req, res, next) => {
 /*
  * Create a new Assignment.
  */
-router.post('/', async (req, res, next) => {
+router.post('/', validateJWT, getRole, async (req, res, next) => {
 	try {
-		console.log("req.body:", req.body);
 		if (validateAgainstSchema(req.body, AssignmentSchema)) {
 			const assignment = extractValidFields(req.body, AssignmentSchema);
 			console.log("assignment:", assignment);
-			const result = await insertNewAssignment(assignment);
-			res.status(201).send({
-				"_id": result.insertedID,
-				"links": {
-					"assignment": `/assignments/${result.insertedID}`
-				}
-			});
+			
+			const instructorID = await getCourseInstructorID(assignment.courseId);
+			if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
+				const result = await insertNewAssignment(assignment);
+				res.status(201).send({
+					"_id": result.insertedID,
+					"links": {
+						"assignment": `/assignments/${result.insertedID}`
+					}
+				});
+			} else {
+				next(403);
+			}
 		} else {
 			next(400);
 		}
@@ -84,12 +92,17 @@ router.get('/:id', async (req, res, next) => {
 /* 
  * Update data for a specific Assignment.
  */
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const assignmentID = parseInt(req.params.id);
 		const assignmentUpdate = extractValidFields(req.body, AssignmentSchema);
-		const result = await updateAssignment(assignmentID, assignmentUpdate);
-		res.status(200).send();
+		const instructorID = await getAssignmentInstructorID(assignmentID);
+		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
+			const result = await updateAssignment(assignmentID, assignmentUpdate);
+			res.status(200).send();
+		} else {
+			next(403);
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -100,11 +113,16 @@ router.patch('/:id', async (req, res, next) => {
 /*
  * Remove a specific Assignment from the database.
  */ 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const assignmentID = parseInt(req.params.id);
-		const result = await deleteAssignment(assignmentID);
-		res.status(204).send();
+		const instructorID = await getAssignmentInstructorID(assignmentID);
+		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
+			const result = await deleteAssignment(assignmentID);
+			res.status(204).send();
+		} else {
+			next(403);
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -117,11 +135,16 @@ router.delete('/:id', async (req, res, next) => {
 /* 
  * Fetch the list of all Submissions for an Assignment.
  */
-router.get('/:id/submissions', async (req, res, next) => {
+router.get('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const assignmentID = parseInt(req.params.id);
-		const submissions = await getSubmissionsToAssignment(assignmentID);
-		res.status(200).json(submissions);
+		const instructorID = await getAssignmentInstructorID(assignmentID);
+		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
+			const submissions = await getSubmissionsToAssignment(assignmentID);
+			res.status(200).json(submissions);
+		} else {
+			next(403);
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -131,19 +154,29 @@ router.get('/:id/submissions', async (req, res, next) => {
 
 // Needs testing
 
+// User needs to be student and enrolled in course
+
 /* 
  * Create a new Submission for an Assignment.
  */
-router.post('/:id/submissions', async (req, res, next) => {
+router.post('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const assignmentID = parseInt(req.params.id);
-		if (validateAgainstSchema(req.body, SubmissionSchema)) {
-			// This will need to be a multipart form data
-			const submission = extractValidFields(req.body, SubmissionSchema);
-			const id = await insertNewSubmission(submission);
-			res.status(201).send();
+
+		const assignment = await getAssignmentByID(assignmentID);
+		const enrolledInCourse = await studentEnrolledInCourse(req.tokenUserID, assignment.courseId);
+
+		if (enrolledInCourse) {
+			if (validateAgainstSchema(req.body, SubmissionSchema)) {
+				// This will need to be a multipart form data
+				const submission = extractValidFields(req.body, SubmissionSchema);
+				const id = await insertNewSubmission(submission);
+				res.status(201).send();
+			} else {
+				next(err);
+			}
 		} else {
-			next(err);
+			next(403);
 		}
 	} catch (err) {
 		next(err);

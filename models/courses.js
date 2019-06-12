@@ -330,3 +330,17 @@ exports.getCourseInstructorID = async function (courseID) {
 		return Promise.reject(500);
 	}
 }
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Return if the specified student is enrolled in the course
+ */
+exports.studentEnrolledInCourse = async function (studentID, courseID) {
+	try {
+		const studentIDs = getStudentsInCourse(courseID)
+		return (studentIDs.includes(studentID));
+	} catch {
+		return Promise.reject(500);
+	}
+}

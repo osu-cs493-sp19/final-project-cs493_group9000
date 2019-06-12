@@ -179,4 +179,18 @@ exports.insertNewSubmission = async function (submission) {
 	}
 }
 
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get instructor ID of course assgiment is for 
+ */
+exports.getAssignmentInstructorID = async function (assignmentID) {
+	try {
+		const assignment = await getAssignmentByID(assignmentID);
+		const instructorID = await getCourseInstructorID(assignment.courseId);
+		return Promise.resolve( instructorID );
+	} catch {
+		return Promise.reject(500);
+	}
+}
 
