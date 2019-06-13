@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const api        = require('./api');
 
 const { connectToDB } = require('./lib/mongo');
-
+const { rateLimit } = require('./lib/rate_limiting');
 
 const app  = express();
 const port = process.env.PORT || 8000;
@@ -24,6 +24,9 @@ app.use(express.static('public'));
  * top-level router lives in api/index.js.  That's what we include here, and
  * it provides all of the routes.
  */
+
+app.use(rateLimit);
+
 app.use('/', api);
 
 app.use('*', function (err, req, res, next) {
