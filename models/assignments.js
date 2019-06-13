@@ -1,5 +1,5 @@
 const { getDBReference } = require('../lib/mongo');
-const { ObjectId } = require('mongodb');
+const { ObjectId, GridFSBucket } = require('mongodb');
 const { extractValidFields } = require('../lib/validation');
 const { getCourseInstructorID } = require('../models/courses');
 const dot = require('mongo-dot-notation');
@@ -173,24 +173,35 @@ exports.getSubmissionsToAssignment = async function (assignmentID) {
 exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
 	try {
 		const db = getDBReference();
-		const collection = db.collection('submissions');
+		// const collection = db.collection('submissions');
+		const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
 
-		
-		const results = await collection
-			.find({ "assignmentId": assignmentID })
-			.sort({ id: 1 })
-			.project({ _id: 0 })
+		// const results = await collection
+		var results = await bucket
+			.find({ "metadata.assignmentId": assignmentID })
+			// .sort({ id: 1 })
+			// .project({ _id: 0 })
+			.project({ 
+				_id: 0,
+				"metadata.studentId": 1,
+				"metadata.assignmentId": 1,
+				"metadata.timestamp": 1,
+				filename: 1
+
+			})
 			.toArray();
 
-		if (results) {
+		results = results.map( (result) => { return { ...result.metadata, filename: result.filename } } );
 
+		console.log("RESULTS:", results);
+
+		if (results) {
 			const count = results.length;
 			const lastPage = Math.ceil(count / pageSize);
 			page = (page > lastPage) ? lastPage : page;
 			page = (page < 1) ? 1 : page;
 			const offset = (page - 1) * pageSize;
 
-			// return Promise.resolve(results);
 			return Promise.resolve({
 				submissions: results.slice(offset, offset+pageSize),
 				pageNumber: page,
@@ -210,19 +221,19 @@ exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-/*
- * Add a submission to an assignment
- */
-exports.insertNewSubmission = async function (submission) {
-	try {
-		const db = getDBReference();
-		const collection = db.collection('submissions');
-		const result = await collection.insertOne(submission);
-		return Promise.resolve( {"insertedID": result.insertedId} );
-	} catch {
-		return Promise.reject(500);
-	}
-}
+// /*
+//  * Add a submission to an assignment
+//  */
+// exports.insertNewSubmission = async function (submission) {
+// 	try {
+// 		const db = getDBReference();
+// 		const collection = db.collection('submissions');
+// 		const result = await collection.insertOne(submission);
+// 		return Promise.resolve( {"insertedID": result.insertedId} );
+// 	} catch {
+// 		return Promise.reject(500);
+// 	}
+// }
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
