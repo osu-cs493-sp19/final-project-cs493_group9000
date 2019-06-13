@@ -14,11 +14,14 @@ const { AssignmentSchema,
 		updateAssignment,
 		deleteAssignment,
 		getSubmissionsToAssignment,
+		getSubmissionsToAssignmentPage,
 		insertNewSubmission,
 		getAssignmentInstructorID
 } = require('../models/assignments');
 
-const { studentEnrolledInCourse } = require('../models/courses');
+const { getCourseInstructorID, 
+		studentEnrolledInCourse 
+} = require('../models/courses');
 
 const { validateJWT,
 		getRole
@@ -95,9 +98,9 @@ router.get('/:id', async (req, res, next) => {
 router.patch('/:id', validateJWT, getRole, async (req, res, next) => {
 	try {
 		const assignmentID = parseInt(req.params.id);
-		const assignmentUpdate = extractValidFields(req.body, AssignmentSchema);
 		const instructorID = await getAssignmentInstructorID(assignmentID);
 		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
+			const assignmentUpdate = extractValidFields(req.body, AssignmentSchema);
 			const result = await updateAssignment(assignmentID, assignmentUpdate);
 			res.status(200).send();
 		} else {
@@ -130,7 +133,7 @@ router.delete('/:id', validateJWT, getRole, async (req, res, next) => {
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
-// Needs testing
+// Needs actual files
 
 /* 
  * Fetch the list of all Submissions for an Assignment.
@@ -140,8 +143,25 @@ router.get('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 		const assignmentID = parseInt(req.params.id);
 		const instructorID = await getAssignmentInstructorID(assignmentID);
 		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
-			const submissions = await getSubmissionsToAssignment(assignmentID);
-			res.status(200).json(submissions);
+			const page = parseInt(req.query.page) || 1;
+			const results = await getSubmissionsToAssignmentPage(assignmentID, page);
+			
+			console.log("results:", results);
+
+			/*
+			 * Generate HATEOAS links for surrounding pages.
+			 */
+			let links = {};
+			if (results.pageNumber < results.totalPages) {
+				links.nextPage = `/assignments/${assignmentID}/submissions?page=${results.pageNumber + 1}`;
+				links.lastPage = `/assignments/${assignmentID}/submissions?page=${results.totalPages}`;
+			}
+			if (results.pageNumber > 1) {
+				links.prevPage = `/assignments/${assignmentID}/submissions?page=${results.pageNumber - 1}`;
+				links.firstPage = `/assignments/${assignmentID}/submissions?page=1`;
+			}
+
+			res.status(200).send({ ...results, links });
 		} else {
 			next(403);
 		}
@@ -156,24 +176,38 @@ router.get('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 
 // User needs to be student and enrolled in course
 
+// Authorization works
+
 /* 
  * Create a new Submission for an Assignment.
  */
 router.post('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 	try {
+
 		const assignmentID = parseInt(req.params.id);
-
+		// console.log("assignmentID:", assignmentID);
 		const assignment = await getAssignmentByID(assignmentID);
+		// console.log("assignment:", assignment);
 		const enrolledInCourse = await studentEnrolledInCourse(req.tokenUserID, assignment.courseId);
+		// console.log("enrolledInCourse:", enrolledInCourse);
 
-		if (enrolledInCourse) {
+		if ((req.tokenUserRole === 'student') && (enrolledInCourse)) {
+
+			req.body.assignmentId = assignmentID;
+			req.body.studentId = req.tokenUserID;
+			req.body.timestamp = new Date().toISOString();
+
+
 			if (validateAgainstSchema(req.body, SubmissionSchema)) {
 				// This will need to be a multipart form data
 				const submission = extractValidFields(req.body, SubmissionSchema);
+
+				console.log("submission:", submission);
+
 				const id = await insertNewSubmission(submission);
 				res.status(201).send();
 			} else {
-				next(err);
+				next(400);
 			}
 		} else {
 			next(403);

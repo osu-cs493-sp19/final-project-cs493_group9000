@@ -1,6 +1,7 @@
 const { getDBReference } = require('../lib/mongo');
 const { ObjectId } = require('mongodb');
 const { extractValidFields } = require('../lib/validation');
+const { getCourseInstructorID } = require('../models/courses');
 const dot = require('mongo-dot-notation');
 
 /*
@@ -28,7 +29,7 @@ exports.SubmissionSchema = SubmissionSchema;
 /*
  * Assignments pagination page size
  */ 
-// const pageSize = 2;
+const pageSize = 2;
 
 
 
@@ -79,7 +80,7 @@ exports.insertNewAssignment = async function (assignment) {
 /*
  * Get assignment info by ID
  */
-exports.getAssignmentByID = async function (assignmentID) {
+async function getAssignmentByID (assignmentID) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('assignments');
@@ -99,7 +100,7 @@ exports.getAssignmentByID = async function (assignmentID) {
 		return Promise.reject(500);
 	}
 }
-
+exports.getAssignmentByID = getAssignmentByID;
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
@@ -162,6 +163,86 @@ exports.getSubmissionsToAssignment = async function (assignmentID) {
 		return Promise.reject(500);
 	}
 }
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get list of assignments for an assignment
+ */
+exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
+	try {
+		const db = getDBReference();
+		const collection = db.collection('submissions');
+
+		
+		const results = await collection
+			.find({ "assignmentId": assignmentID })
+			.sort({ id: 1 })
+			// .skip(offset)
+			// .limit(pageSize)
+			.project({
+				_id: 0
+			})
+			.toArray();
+
+		if (results) {
+
+			const count = results.length;
+			const lastPage = Math.ceil(count / pageSize);
+			page = (page > lastPage) ? lastPage : page;
+			page = (page < 1) ? 1 : page;
+			const offset = (page - 1) * pageSize;
+
+			console.log("LASTPAGE:", lastPage);
+			console.log("PAGE:", page);
+			console.log("OFFSET:", offset);
+			console.log("COUNT:", count);
+
+			// return Promise.resolve(results);
+			return Promise.resolve({
+				submissions: results.slice(offset, offset+pageSize),
+				pageNumber: page,
+				totalPages: lastPage,
+				pageSize: pageSize,
+				count: count
+			});
+		} else {
+			return Promise.reject(404);
+		}
+
+	} catch (err) {
+		console.log(err);
+		return Promise.reject(500);
+	}
+}
+
+
+
+		// // const count = await collection.countDocuments(); 
+		// // const lastPage = Math.ceil(count / pageSize);
+		// page = (page > lastPage) ? lastPage : page;
+		// page = (page < 1) ? 1 : page;
+		// const offset = (page - 1) * pageSize;
+
+		// const results = await collection
+		// 	.find()
+		// 	.sort({ id: 1 })
+		// 	.skip(offset)
+		// 	.limit(pageSize)
+		// 	.project({ 
+		// 		_id: 0,
+		// 		// id: 0,
+		// 		studentIds: 0
+		// 	})			
+		// 	.toArray();
+
+		// return Promise.resolve({
+		// 	courses: results,
+		// 	pageNumber: page,
+		// 	totalPages: lastPage,
+		// 	pageSize: pageSize,
+		// 	count: count
+		// });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 

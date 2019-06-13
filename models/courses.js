@@ -254,7 +254,7 @@ exports.removeStudentsFromCourse = async function (courseID, studentIDs) {
 /*
  * Get info of students in a course
  */
-exports.getStudentsInCourse = async function (courseID) {
+async function getStudentsInCourse (courseID) {
 	try {
 		const db = getDBReference();
 		const collection = db.collection('users');
@@ -262,9 +262,14 @@ exports.getStudentsInCourse = async function (courseID) {
 		const tmp = await db.collection('courses').find({ "id": courseID }).toArray();
 		const studentIDs = tmp[0] ? tmp[0].studentIds : []
 
+		// console.log("tmp:", tmp);
+		// console.log("studentIDs:", studentIDs);
+
 		const results = await collection.find(
 			{ id: { $in: studentIDs } }
 		).toArray();
+
+		// console.log("results:", results);
 
 		if (results) {
 			return Promise.resolve(results);
@@ -275,7 +280,7 @@ exports.getStudentsInCourse = async function (courseID) {
 		return Promise.reject(500);
 	}
 }
-
+exports.getStudentsInCourse = getStudentsInCourse;
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
@@ -338,9 +343,15 @@ exports.getCourseInstructorID = async function (courseID) {
  */
 exports.studentEnrolledInCourse = async function (studentID, courseID) {
 	try {
-		const studentIDs = getStudentsInCourse(courseID)
+		const students = await getStudentsInCourse(courseID);	
+		// console.log("students:", students);
+
+		const studentIDs = students.map( student => student.id );
+		// console.log("studentIDs:", studentIDs);
+
 		return (studentIDs.includes(studentID));
-	} catch {
+	} catch (err) {
+		console.log(err)
 		return Promise.reject(500);
 	}
 }
