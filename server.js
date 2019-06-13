@@ -25,10 +25,20 @@ app.use(express.static('public'));
  * it provides all of the routes.
  */
 
+
+/*
+ * Apply rate limiting
+ */ 
 app.use(rateLimit);
 
+/*
+ * Endpoints
+ */
 app.use('/', api);
 
+/*
+ * Error messages, calld via 'next(err)'
+ */
 app.use('*', function (err, req, res, next) {
 	console.error(err);
 	if (err == 404) {
@@ -58,6 +68,9 @@ app.use('*', function (err, req, res, next) {
 	}
 });
 
+/*
+ * General catchall that resource did not exist
+ */
 app.use('*', function (req, res, next) {
 	res.status(404).json({
 		error: "Requested resource " + req.originalUrl + " does not exist"
@@ -65,7 +78,9 @@ app.use('*', function (req, res, next) {
 });
 
 
-
+/*
+ * Connect to the DB then listen for requests
+ */
 connectToDB(() => {
 	app.listen(port, () => {
 		console.log("== Server is listening on port:", port);

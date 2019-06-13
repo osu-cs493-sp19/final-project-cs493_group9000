@@ -17,6 +17,7 @@ const { UserSchema,
 
 const { generateAuthToken, 
 		validateJWT, 
+		validateJWTOptional,
 		getRole,
 		validateUserEmail
 } = require('../lib/auth');
@@ -50,12 +51,19 @@ router.get('/', async (req, res) => {
 
 /*
  * Create a new user
+ * Authentication not required to create student
+ * Authentication and admin role required to create instructor / admin
  */
-router.post('/', async (req, res, next) => {
+router.post('/', validateJWTOptional, async (req, res, next) => {
 	try {
-		console.log(req.body);
 		if (validateAgainstSchema(req.body, UserSchema) && RoleSchema.includes(req.body.role) ) {
-			const user = extractValidFields(req.body, UserSchema)
+			const user = extractValidFields(req.body, UserSchema);
+		
+			if ( ((user.role === 'admin') || (user.role === 'instructor'))
+					&& (req.tokenUserRole != 'admin') ) {
+				res.status(403).json({ error: "Only an admin user can create instructor / admin" });
+			}
+
 			const result = await insertNewUser(user);
 			res.status(201).send({
 				"_id": result,
