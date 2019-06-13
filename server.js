@@ -50,7 +50,7 @@ app.use('*', function (err, req, res, next) {
 		});
 	} else {
 		res.status(err).json({
-			error: "Unknown error"
+			error: err
 		});
 	}
 });

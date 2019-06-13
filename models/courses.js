@@ -259,17 +259,14 @@ async function getStudentsInCourse (courseID) {
 		const db = getDBReference();
 		const collection = db.collection('users');
 
+		// Get student IDs
 		const tmp = await db.collection('courses').find({ "id": courseID }).toArray();
 		const studentIDs = tmp[0] ? tmp[0].studentIds : []
 
-		// console.log("tmp:", tmp);
-		// console.log("studentIDs:", studentIDs);
-
+		// Get students' info
 		const results = await collection.find(
 			{ id: { $in: studentIDs } }
 		).toArray();
-
-		// console.log("results:", results);
 
 		if (results) {
 			return Promise.resolve(results);
@@ -290,10 +287,9 @@ exports.getAssignmentsOfCourse = async function (courseID) {
 	try {
 		// Verify that the course exists
 		const courseResults = await getDBReference().collection('courses').find({ id: courseID }).toArray();
-		if (!courseResults[0]){
+		if (!courseResults[0]) {
 			return Promise.reject(404);
 		}
-
 		const db = getDBReference();
 		const collection = db.collection('assignments');
 		const results = await collection
@@ -344,11 +340,7 @@ exports.getCourseInstructorID = async function (courseID) {
 exports.studentEnrolledInCourse = async function (studentID, courseID) {
 	try {
 		const students = await getStudentsInCourse(courseID);	
-		// console.log("students:", students);
-
 		const studentIDs = students.map( student => student.id );
-		// console.log("studentIDs:", studentIDs);
-
 		return (studentIDs.includes(studentID));
 	} catch (err) {
 		console.log(err)

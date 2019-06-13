@@ -17,12 +17,8 @@ const { UserSchema,
 
 const { generateAuthToken, 
 		validateJWT, 
-		// isAdmin, 
-		// getPermissions,
 		getRole,
-		// getPermissionsGet, 
 		validateUserEmail
-		// createAdminPermission 
 } = require('../lib/auth');
 
 /*
@@ -59,7 +55,6 @@ router.post('/', async (req, res, next) => {
 	try {
 		console.log(req.body);
 		if (validateAgainstSchema(req.body, UserSchema) && RoleSchema.includes(req.body.role) ) {
-		// if (validateAgainstSchema(req.body, UserSchema)) {
 			const user = extractValidFields(req.body, UserSchema)
 			const result = await insertNewUser(user);
 			res.status(201).send({
@@ -112,16 +107,10 @@ router.post('/login', async (req, res, next) => {
  */
 router.get('/:id', validateJWT, getRole, async (req, res, next) => {
 	try {
-
-		// console.log("REQ.params:\n", req.params);
-		// console.log("REQ.permissions:\n", req.permissions);
-		// console.log("REQ.role:\n", req.role);
-
 		const id = parseInt(req.params.id);
-
 		if ((req.tokenUserID === id) || (req.tokenUserRole === 'admin')) {
-
 			const user = await getUserByID(id);
+			
 			if (user.role === 'instructor') {
 				const coursesTaught = await getCoursesTaught(id);
 				var result = { ...user, coursesTaught: coursesTaught };

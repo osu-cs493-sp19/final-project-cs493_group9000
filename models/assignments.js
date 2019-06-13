@@ -101,6 +101,7 @@ async function getAssignmentByID (assignmentID) {
 	}
 }
 exports.getAssignmentByID = getAssignmentByID;
+
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
 /*
@@ -178,11 +179,7 @@ exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
 		const results = await collection
 			.find({ "assignmentId": assignmentID })
 			.sort({ id: 1 })
-			// .skip(offset)
-			// .limit(pageSize)
-			.project({
-				_id: 0
-			})
+			.project({ _id: 0 })
 			.toArray();
 
 		if (results) {
@@ -192,11 +189,6 @@ exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
 			page = (page > lastPage) ? lastPage : page;
 			page = (page < 1) ? 1 : page;
 			const offset = (page - 1) * pageSize;
-
-			console.log("LASTPAGE:", lastPage);
-			console.log("PAGE:", page);
-			console.log("OFFSET:", offset);
-			console.log("COUNT:", count);
 
 			// return Promise.resolve(results);
 			return Promise.resolve({
@@ -215,34 +207,6 @@ exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
 		return Promise.reject(500);
 	}
 }
-
-
-
-		// // const count = await collection.countDocuments(); 
-		// // const lastPage = Math.ceil(count / pageSize);
-		// page = (page > lastPage) ? lastPage : page;
-		// page = (page < 1) ? 1 : page;
-		// const offset = (page - 1) * pageSize;
-
-		// const results = await collection
-		// 	.find()
-		// 	.sort({ id: 1 })
-		// 	.skip(offset)
-		// 	.limit(pageSize)
-		// 	.project({ 
-		// 		_id: 0,
-		// 		// id: 0,
-		// 		studentIds: 0
-		// 	})			
-		// 	.toArray();
-
-		// return Promise.resolve({
-		// 	courses: results,
-		// 	pageNumber: page,
-		// 	totalPages: lastPage,
-		// 	pageSize: pageSize,
-		// 	count: count
-		// });
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 

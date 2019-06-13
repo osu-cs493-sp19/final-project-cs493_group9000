@@ -178,6 +178,8 @@ router.get('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 
 // Authorization works
 
+// Needs actual files
+
 /* 
  * Create a new Submission for an Assignment.
  */
