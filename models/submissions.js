@@ -5,6 +5,13 @@ const multer = require('multer');
 const crypto = require('crypto');
 
 
+/*
+ * Submissions pagination page size
+ */ 
+const pageSize = 4;
+
+
+
 const fileTypes = {
 	'image/jpeg': 'jpg',
 	'image/png': 'png',
@@ -31,6 +38,76 @@ exports.upload = upload;
 
 
 
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+// /*
+//  * Get single submission by ID
+//  */
+exports.getSubmissionsByID = async function (submissionID) {
+	try {
+		const db = getDBReference();
+		const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
+		if (!ObjectId.isValid(submissionID)) {
+			Promise.reject(404);
+		} else {
+			const results = await bucket.find({ _id: new ObjectId(submissionID) }).toArray();
+			return Promise.resolve(results[0]);
+		}	
+	} catch {
+		return Promise.reject(500);
+	}
+}
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/*
+ * Get list of assignments for an assignment
+ */
+exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
+	try {
+		const db = getDBReference();
+		const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
+
+		var results = await bucket
+			.find({ "metadata.assignmentId": assignmentID })
+			.project({ 
+				_id: 1,
+				"metadata.studentId": 1,
+				"metadata.assignmentId": 1,
+				"metadata.timestamp": 1,
+				filename: 1
+			})
+			.toArray();
+
+		results = results.map( (result) => { return { 
+			_id: result._id, 
+			...result.metadata, 
+			filename: result.filename 
+		} } );
+
+		if (results) {
+			const count = results.length;
+			const lastPage = Math.ceil(count / pageSize);
+			page = (page > lastPage) ? lastPage : page;
+			page = (page < 1) ? 1 : page;
+			const offset = (page - 1) * pageSize;
+
+			return Promise.resolve({
+				submissions: results.slice(offset, offset+pageSize),
+				pageNumber: page,
+				totalPages: lastPage,
+				pageSize: pageSize,
+				count: count
+			});
+		} else {
+			return Promise.reject(404);
+		}
+
+	} catch (err) {
+		console.log(err);
+		return Promise.reject(500);
+	}
+}
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -46,7 +123,8 @@ exports.saveSubmissionFile = function (file) {
 			studentId: file.studentId,
 			assignmentId: file.assignmentId,
 			timestamp: file.timestamp,
-			contentType: file.contentType
+			contentType: file.contentType,
+			originalName: file.originalName
 		};
 
 		const uploadStream = bucket.openUploadStream(
@@ -71,15 +149,18 @@ exports.saveSubmissionFile = function (file) {
  * Get download stream of a submission by its ID
  */
 exports.getDownloadStreamById = function (id) {
-	const db = getDBReference();
-	const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
-	if (!ObjectId.isValid(id)) {
-		return null;
-	} else {
-		return bucket.openDownloadStream(new ObjectId(id));
+	try {
+		const db = getDBReference();
+		const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
+		if (!ObjectId.isValid(id)) {
+			return null;
+		} else {
+			return bucket.openDownloadStream(new ObjectId(id));
+		}
+	} catch {
+		next(500);
 	}
 };
-
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 

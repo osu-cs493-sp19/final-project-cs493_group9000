@@ -14,7 +14,6 @@ const { AssignmentSchema,
 		updateAssignment,
 		deleteAssignment,
 		getSubmissionsToAssignment,
-		getSubmissionsToAssignmentPage,
 		// insertNewSubmission,
 		getAssignmentInstructorID
 } = require('../models/assignments');
@@ -30,6 +29,7 @@ const { validateJWT,
 const {
 	fileTypes,
 	upload,
+	getSubmissionsToAssignmentPage,
 	saveSubmissionFile,
 	removeUploadedFile
 } = require('../models/submissions');
@@ -190,9 +190,7 @@ router.get('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
  */
 router.post('/:id/submissions', validateJWT, getRole, upload.single('file'), async (req, res, next) => {
 	if (req.file) {
-
-		req.body.file = req.file.filename;
-
+		
 		try {
 			const assignmentID = parseInt(req.params.id);
 			const assignment = await getAssignmentByID(assignmentID);
@@ -206,15 +204,16 @@ router.post('/:id/submissions', validateJWT, getRole, upload.single('file'), asy
 					timestamp: new Date().toISOString(),
 					path: req.file.path,
 					filename: req.file.filename,
-					contentType: req.file.mimetype
+					contentType: req.file.mimetype,
+					originalName: req.file.originalname
 				};
 
 				// GridFS version of insert
 				const id = await saveSubmissionFile(submission);
 				await removeUploadedFile(req.file)
 				// const id = await insertNewSubmission(submission);
-				
-				res.status(201).send();
+
+				res.status(201).send("New Submission successfully added");
 			} else {
 				next(403);
 			}

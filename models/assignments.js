@@ -26,12 +26,6 @@ const SubmissionSchema = {
 }
 exports.SubmissionSchema = SubmissionSchema;
 
-/*
- * Assignments pagination page size
- */ 
-const pageSize = 2;
-
-
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -161,60 +155,6 @@ exports.getSubmissionsToAssignment = async function (assignmentID) {
 			.toArray();
 		return Promise.resolve(results);
 	} catch {
-		return Promise.reject(500);
-	}
-}
-
-// = = = = = = = = = = = = = = = = = = = = = = = = =
-
-/*
- * Get list of assignments for an assignment
- */
-exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
-	try {
-		const db = getDBReference();
-		// const collection = db.collection('submissions');
-		const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
-
-		// const results = await collection
-		var results = await bucket
-			.find({ "metadata.assignmentId": assignmentID })
-			.project({ 
-				_id: 1,
-				"metadata.studentId": 1,
-				"metadata.assignmentId": 1,
-				"metadata.timestamp": 1,
-				filename: 1
-			})
-			.toArray();
-		// console.log("RESULTS:", results);
-
-		results = results.map( (result) => { return { 
-			_id: result._id, 
-			...result.metadata, 
-			filename: result.filename 
-		} } );
-
-		if (results) {
-			const count = results.length;
-			const lastPage = Math.ceil(count / pageSize);
-			page = (page > lastPage) ? lastPage : page;
-			page = (page < 1) ? 1 : page;
-			const offset = (page - 1) * pageSize;
-
-			return Promise.resolve({
-				submissions: results.slice(offset, offset+pageSize),
-				pageNumber: page,
-				totalPages: lastPage,
-				pageSize: pageSize,
-				count: count
-			});
-		} else {
-			return Promise.reject(404);
-		}
-
-	} catch (err) {
-		console.log(err);
 		return Promise.reject(500);
 	}
 }

@@ -212,7 +212,7 @@ router.get('/:id/roster', validateJWT, getRole, async (req, res, next) => {
 			const csv = jsonParser.parse(students);
 
 			res.attachment('course-'+courseID+'-students.csv');
-			res.status(200).send(csv);
+			res.status(200).type('text/csv').send(csv);
 		} else {
 			next(403);
 		}

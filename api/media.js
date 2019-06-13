@@ -2,7 +2,9 @@ const router = require('express').Router();
 
 exports.router = router;
 
-const { getDownloadStreamById } = require('../models/submissions');
+const { getDownloadStreamById, 
+		getSubmissionsByID 
+} = require('../models/submissions');
 
 
 // = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -13,7 +15,8 @@ const { getDownloadStreamById } = require('../models/submissions');
 router.get('/:id', async (req, res, next) => {
 	try {
 		const id = req.params.id;
-		
+		const submission = await getSubmissionsByID(id);
+
 		getDownloadStreamById(id)
 			.on('error', (err) => {
 				if (err.code === 'ENOENT') {
@@ -23,10 +26,12 @@ router.get('/:id', async (req, res, next) => {
 				}
 			})
 			.on('file', (file) => {
-				res.status(200).type('image/jpeg');
+				res.attachment(submission.metadata.originalName);
+				res.status(200).type(submission.metadata.contentType);
 			})
 			.pipe(res);
 	} catch (err) {
+		console.log(err);
 		next(err);
 	}
 });
