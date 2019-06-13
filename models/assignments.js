@@ -179,21 +179,21 @@ exports.getSubmissionsToAssignmentPage = async function (assignmentID, page) {
 		// const results = await collection
 		var results = await bucket
 			.find({ "metadata.assignmentId": assignmentID })
-			// .sort({ id: 1 })
-			// .project({ _id: 0 })
 			.project({ 
-				_id: 0,
+				_id: 1,
 				"metadata.studentId": 1,
 				"metadata.assignmentId": 1,
 				"metadata.timestamp": 1,
 				filename: 1
-
 			})
 			.toArray();
+		// console.log("RESULTS:", results);
 
-		results = results.map( (result) => { return { ...result.metadata, filename: result.filename } } );
-
-		console.log("RESULTS:", results);
+		results = results.map( (result) => { return { 
+			_id: result._id, 
+			...result.metadata, 
+			filename: result.filename 
+		} } );
 
 		if (results) {
 			const count = results.length;

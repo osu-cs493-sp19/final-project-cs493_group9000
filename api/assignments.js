@@ -15,7 +15,7 @@ const { AssignmentSchema,
 		deleteAssignment,
 		getSubmissionsToAssignment,
 		getSubmissionsToAssignmentPage,
-		insertNewSubmission,
+		// insertNewSubmission,
 		getAssignmentInstructorID
 } = require('../models/assignments');
 
@@ -27,12 +27,9 @@ const { validateJWT,
 		getRole
 } = require('../lib/auth');
 
-// Need for file submissions
-const multer = require('multer');
-const crypto = require('crypto');
-const fs     = require('fs');
-
 const {
+	fileTypes,
+	upload,
 	saveSubmissionFile,
 	removeUploadedFile
 } = require('../models/submissions');
@@ -154,9 +151,15 @@ router.get('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 		const instructorID = await getAssignmentInstructorID(assignmentID);
 		if ((req.tokenUserRole === 'admin') || (req.tokenUserID === instructorID)) {
 			const page = parseInt(req.query.page) || 1;
-			const results = await getSubmissionsToAssignmentPage(assignmentID, page);
-			
-			console.log("results:", results);
+			var results = await getSubmissionsToAssignmentPage(assignmentID, page);
+						
+			// Put results into format expected of the API
+			results.submissions = results.submissions.map( (result) => { return { 
+				studentId: result.studentId,
+				assignmentId: result.assignmentId,
+				timestamp: result.timestamp,
+				file: `/media/${result._id}` 
+			} } );
 
 			/*
 			 * Generate HATEOAS links for surrounding pages.
@@ -180,49 +183,7 @@ router.get('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
 	}
 });
 
-
-
-
-
-
-
-
-
 // = = = = = = = = = = = = = = = = = = = = = = = = =
-
-
-const fileTypes = {
-	'image/jpeg': 'jpg',
-	'image/png': 'png',
-	'application/pdf': 'pdf',
-	'text/plain': 'txt'
-};
-
-
-const upload = multer({
-	storage: multer.diskStorage({
-		destination: `${__dirname}/uploads`,
-		filename: (req, file, callback) => {
-			const basename = crypto.pseudoRandomBytes(16).toString('hex');
-			const extension = fileTypes[file.mimetype];
-			callback(null, `${basename}.${extension}`);
-		}
-	}),
-	fileFilter: (req, file, callback) => {
-		callback(null, !!fileTypes[file.mimetype]);
-	}
-});
-
-
-
-
-// Needs testing
-
-// User needs to be student and enrolled in course
-
-// Authorization works
-
-// Needs actual files
 
 /* 
  * Create a new Submission for an Assignment.
@@ -230,17 +191,12 @@ const upload = multer({
 router.post('/:id/submissions', validateJWT, getRole, upload.single('file'), async (req, res, next) => {
 	if (req.file) {
 
-		console.log("FILE:", req.file);
 		req.body.file = req.file.filename;
 
 		try {
-
 			const assignmentID = parseInt(req.params.id);
-			// console.log("assignmentID:", assignmentID);
 			const assignment = await getAssignmentByID(assignmentID);
-			// console.log("assignment:", assignment);
 			const enrolledInCourse = await studentEnrolledInCourse(req.tokenUserID, assignment.courseId);
-			// console.log("enrolledInCourse:", enrolledInCourse);
 
 			if ((req.tokenUserRole === 'student') && (enrolledInCourse)) {
 
@@ -253,14 +209,11 @@ router.post('/:id/submissions', validateJWT, getRole, upload.single('file'), asy
 					contentType: req.file.mimetype
 				};
 
-
-				console.log("SUBMISSION:\n", submission);
-
+				// GridFS version of insert
 				const id = await saveSubmissionFile(submission);
 				await removeUploadedFile(req.file)
-
-
 				// const id = await insertNewSubmission(submission);
+				
 				res.status(201).send();
 			} else {
 				next(403);
@@ -273,49 +226,6 @@ router.post('/:id/submissions', validateJWT, getRole, upload.single('file'), asy
 		next(400);
 	}
 });
-
-
-
-
-
-// router.post('/:id/submissions', validateJWT, getRole, async (req, res, next) => {
-// 	try {
-
-// 		const assignmentID = parseInt(req.params.id);
-// 		// console.log("assignmentID:", assignmentID);
-// 		const assignment = await getAssignmentByID(assignmentID);
-// 		// console.log("assignment:", assignment);
-// 		const enrolledInCourse = await studentEnrolledInCourse(req.tokenUserID, assignment.courseId);
-// 		// console.log("enrolledInCourse:", enrolledInCourse);
-
-// 		if ((req.tokenUserRole === 'student') && (enrolledInCourse)) {
-
-// 			req.body.assignmentId = assignmentID;
-// 			req.body.studentId = req.tokenUserID;
-// 			req.body.timestamp = new Date().toISOString();
-
-
-// 			if (validateAgainstSchema(req.body, SubmissionSchema)) {
-// 				// This will need to be a multipart form data
-// 				const submission = extractValidFields(req.body, SubmissionSchema);
-
-// 				console.log("submission:", submission);
-
-// 				const id = await insertNewSubmission(submission);
-// 				res.status(201).send();
-// 			} else {
-// 				next(400);
-// 			}
-// 		} else {
-// 			next(403);
-// 		}
-// 	} catch (err) {
-// 		next(err);
-// 	}
-// });
-
-
-
 
 
 

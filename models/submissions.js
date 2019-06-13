@@ -1,8 +1,42 @@
 const { getDBReference } = require('../lib/mongo');
 const { ObjectId, GridFSBucket } = require('mongodb');
 const fs = require('fs');
+const multer = require('multer');
+const crypto = require('crypto');
 
 
+const fileTypes = {
+	'image/jpeg': 'jpg',
+	'image/png': 'png',
+	'application/pdf': 'pdf',
+	'text/plain': 'txt'
+};
+exports.fileTypes = fileTypes;
+
+
+const upload = multer({
+	storage: multer.diskStorage({
+		destination: `${__dirname}/uploads`,
+		filename: (req, file, callback) => {
+			const basename = crypto.pseudoRandomBytes(16).toString('hex');
+			const extension = fileTypes[file.mimetype];
+			callback(null, `${basename}.${extension}`);
+		}
+	}),
+	fileFilter: (req, file, callback) => {
+		callback(null, !!fileTypes[file.mimetype]);
+	}
+});
+exports.upload = upload;
+
+
+
+
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/* 
+ * Add a submitted file to GridFS
+ */
 exports.saveSubmissionFile = function (file) {
 	return new Promise((resolve, reject) => {
 		const db = getDBReference();
@@ -14,9 +48,6 @@ exports.saveSubmissionFile = function (file) {
 			timestamp: file.timestamp,
 			contentType: file.contentType
 		};
-
-		// console.log("METADATA:", metadata);
-		// console.log("FILE:", file);
 
 		const uploadStream = bucket.openUploadStream(
 			file.filename,
@@ -34,31 +65,11 @@ exports.saveSubmissionFile = function (file) {
 	});
 };
 
+// = = = = = = = = = = = = = = = = = = = = = = = = =
 
-exports.getFileInfoByID = async function (id) {
-	try {
-		const db = getDBReference();
-		const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
-		if (!ObjectId.isValid(id)) {
-			return null;
-		} else {
-			const results = await bucket.find({ _id: new ObjectId(id) })
-				.toArray();
-			return results[0];
-		}
-	} catch {
-		return 500;
-	}
-};
-
-
-exports.getDownloadStreamByFilename = function (filename) {
-	const db = getDBReference();
-	const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
-	return bucket.openDownloadStreamByName(filename);
-};
-
-
+/* 
+ * Get download stream of a submission by its ID
+ */
 exports.getDownloadStreamById = function (id) {
 	const db = getDBReference();
 	const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
@@ -70,6 +81,11 @@ exports.getDownloadStreamById = function (id) {
 };
 
 
+// = = = = = = = = = = = = = = = = = = = = = = = = =
+
+/* 
+ * Remove a file that was uploaded before adding to GridFS
+ */
 exports.removeUploadedFile = function (file) {
 	return new Promise((resolve, reject) => {
 		fs.unlink(file.path, (err) => {
@@ -81,5 +97,14 @@ exports.removeUploadedFile = function (file) {
 		});
 	});
 }
+
+
+
+// exports.getDownloadStreamByFilename = function (filename) {
+// 	const db = getDBReference();
+// 	const bucket = new GridFSBucket(db, { bucketName: 'submissions' });
+// 	return bucket.openDownloadStreamByName(filename);
+// };
+
 
 
